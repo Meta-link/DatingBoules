@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour {
 
@@ -19,16 +20,20 @@ public class UIManager : MonoBehaviour {
     {
         GameManager.OnState -= _OnState;
     }
-	
-	void Update () {
-		
-	}
 
     public void makeChoice(string choice)
     {
         if (OnChoice != null)
             OnChoice(choice);
         choices.SetActive(false);
+    }
+
+    public void setButton(int nb, string s)
+    {
+        Button b = GameObject.Find("Button " + nb).GetComponent<Button>();
+        b.GetComponentInChildren<Text>().text = s;
+        b.onClick.RemoveAllListeners();
+        b.onClick.AddListener(() => makeChoice(s));
     }
 
     private void _OnState(EState state)

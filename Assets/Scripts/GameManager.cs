@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public enum EState
 {
@@ -27,6 +29,7 @@ public class GameManager : MonoBehaviour {
 
     public int pointsToWin = 5;
     public int pointsToLoose = -5;
+    public int bonnesReponses = 3;
     public float transfertTimer = 1f;
     public float slowMotionCap = 0.2f;
     public float slowMotionSpeed = 1f;
@@ -41,6 +44,8 @@ public class GameManager : MonoBehaviour {
     private GameObject _end;
     private Animator _endAnimator;
     private int _currentBoule = 0;
+    private UIManager _UIManager;
+    private List<string> _icons;
 
     private bool _lastContent = false;
     private float _timer;
@@ -53,11 +58,21 @@ public class GameManager : MonoBehaviour {
         _startAnimator = _start.GetComponent<Animator>();
         _end = GameObject.FindGameObjectWithTag("BouleEnd");
         _endAnimator = _end.GetComponent<Animator>();
+        _UIManager = GameObject.Find("UI").GetComponent<UIManager>();
+
+        _icons = new List<string>();
+        foreach(Reaction r in bouleEnd.reactions)
+        {
+            _icons.Add(r.action);
+        }
+
 
         foreach (Boule g in boules)
         {
             g.objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = false;
         }
+
+        _setNewTexts(bonnesReponses);
 
         _changeState(EState.START);
 
@@ -165,6 +180,7 @@ public class GameManager : MonoBehaviour {
                             _startAnimator.SetTrigger("Uping");
                             _currentBoule = 0;
                             _changeState(EState.CHOOSE);
+                            _setNewTexts(bonnesReponses);
                         }
                     }
                     break;
@@ -227,6 +243,75 @@ public class GameManager : MonoBehaviour {
                 _lastContent = false;
             }
         }
+    }
+
+    private void _setNewTexts(int n)
+    {
+        int b = 1;
+        List<string> list = _getChain();
+        List<string> remaining = _icons.Except(list).ToList();
+
+
+
+        foreach (string s in list)
+        {
+            //Debug.Log(s);
+        }
+        //Debug.Log(" ");
+        foreach (string s in remaining)
+        {
+            //Debug.Log(s);
+        }
+
+        System.Random rnd = new System.Random();
+
+        for(int i = 0; i < n; i++)
+        {
+            int rdm = rnd.Next(list.Count);
+            _UIManager.setButton(b, list[rdm]);
+            list.RemoveAt(rdm);
+            b++;
+        }
+        for(int i = b; i <= 4; i++)
+        {
+            int rdm = rnd.Next(remaining.Count);
+            _UIManager.setButton(b, remaining[rdm]);
+            remaining.RemoveAt(rdm);
+        }
+    }
+
+    private List<string> _getChain()
+    {
+        List<string> actions = new List<string>();
+        foreach(Reaction r in bouleEnd.reactions)
+        {
+            if(r.content)
+            {
+                actions.AddRange(_getPrevious(r.action, boules.Length-1));
+            }
+        }
+
+        return actions.Distinct().ToList();
+    }
+
+    private List<string> _getPrevious(string action, int i)
+    {
+        List<string> actions = new List<string>();
+        foreach (Reaction r in boules[i].chara.reactions)
+        {
+            if(r.reaction == action)
+            {
+                if(i == 0)
+                {
+                    actions.Add(r.action);
+                }
+                else
+                {
+                    actions.AddRange(_getPrevious(r.action, i - 1));
+                }
+            }
+        }
+        return actions;
     }
 
     private void _changeState(EState newState)
