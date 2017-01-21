@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour {
     [HideInInspector]
     public static EState state;
 
+    public string nextLevel;
     public int pointsToWin = 5;
     public int pointsToLoose = -5;
     public int bonnesReponses = 3;
@@ -64,12 +65,6 @@ public class GameManager : MonoBehaviour {
         foreach(Reaction r in bouleEnd.reactions)
         {
             _icons.Add(r.action);
-        }
-
-
-        foreach (Boule g in boules)
-        {
-            g.objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = false;
         }
 
         _setNewTexts(bonnesReponses);
@@ -116,7 +111,8 @@ public class GameManager : MonoBehaviour {
                         }
                         _score--;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/neutral");
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = true;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
                         _changeState(EState.MISS);
                     }
 
@@ -127,7 +123,8 @@ public class GameManager : MonoBehaviour {
                     if(_startAnimator.GetCurrentAnimatorStateInfo(0).IsName("Bouncing"))
                     {
                         _timer = transfertTimer;
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = true;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
                         _changeState(EState.TRANSFER);
                     }
                     break;
@@ -137,7 +134,8 @@ public class GameManager : MonoBehaviour {
                     _timer -= Time.deltaTime;
                     if(_timer <= 0)
                     {
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = false;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = false;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = false;
                         _currentBoule++;
                         if (_currentBoule >= boules.Length)
                         {
@@ -157,7 +155,8 @@ public class GameManager : MonoBehaviour {
                         else
                         {
                             _timer = transfertTimer;
-                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = true;
+                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
+                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
                         }
                     }
                     break;
@@ -191,7 +190,8 @@ public class GameManager : MonoBehaviour {
                     if (_timer <= 0)
                     {
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_neutral_boy");
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = false;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = false;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = false;
                         _currentBoule++;
                         if (_currentBoule >= boules.Length)
                         {
@@ -203,7 +203,8 @@ public class GameManager : MonoBehaviour {
                         {
                             _timer = transfertTimer;
                             boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/neutral");
-                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = true;
+                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
+                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
                         }
                     }
                     break;
@@ -229,7 +230,7 @@ public class GameManager : MonoBehaviour {
             foreach(Boule b in boules)
             {
                 choice = b.chara.getReaction(choice);
-                b.objet.GetComponentsInChildren<SpriteRenderer>()[2].sprite = Resources.Load<Sprite>("Icons/" + choice);
+                b.objet.GetComponentsInChildren<SpriteRenderer>()[3].sprite = Resources.Load<Sprite>("Icons/" + choice);
             }
 
             if(bouleEnd.getContent(choice))
