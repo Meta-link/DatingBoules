@@ -3,6 +3,8 @@
 public class UIManager : MonoBehaviour {
 
     public GameObject choices;
+    public GameObject win;
+    public GameObject loose;
 
     public delegate void EventChoice(string choice);
     public static event EventChoice OnChoice;
@@ -36,6 +38,18 @@ public class UIManager : MonoBehaviour {
             case EState.CHOOSE:
                 {
                     choices.SetActive(true);
+                    break;
+                }
+            case EState.WIN:
+                {
+                    choices.SetActive(false);
+                    win.SetActive(true);
+                    break;
+                }
+            case EState.LOOSE:
+                {
+                    choices.SetActive(false);
+                    loose.SetActive(true);
                     break;
                 }
         }

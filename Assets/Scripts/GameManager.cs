@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 
 public enum EState
 {
@@ -7,7 +8,15 @@ public enum EState
     DOWNING,
     TRANSFER,
     ANSWER,
-    END
+    WIN,
+    LOOSE
+}
+
+[Serializable]
+public struct Boule
+{
+    public GameObject objet;
+    public BouleProperties chara;
 }
 
 public class GameManager : MonoBehaviour {
@@ -15,16 +24,23 @@ public class GameManager : MonoBehaviour {
     [HideInInspector]
     public static EState state;
 
+    public int pointsToWin = 5;
+    public int pointsToLoose = -5;
     public float transfertTimer = 1f;
-    public GameObject[] _boules;
+    [Space(10)]
+    public Boule[] boules;
+    [Space(15)]
+    public BouleProperties bouleEnd;
 
+    private int _score = 0;
     private GameObject _start;
     private Animator _startAnimator;
     private GameObject _end;
     private Animator _endAnimator;
     private int _currentBoule = 0;
 
-    private float timer;
+    private bool _lastContent = false;
+    private float _timer;
 
     public delegate void EventState(EState state);
     public static event EventState OnState;
@@ -35,9 +51,9 @@ public class GameManager : MonoBehaviour {
         _end = GameObject.FindGameObjectWithTag("BouleEnd");
         _endAnimator = _end.GetComponent<Animator>();
 
-        foreach (GameObject g in _boules)
+        foreach (Boule g in boules)
         {
-            g.GetComponentsInChildren<SpriteRenderer>()[1].enabled = false;
+            g.objet.GetComponentsInChildren<SpriteRenderer>()[1].enabled = false;
         }
 
         _changeState(EState.START);
@@ -71,32 +87,43 @@ public class GameManager : MonoBehaviour {
                 {
                     if(_startAnimator.GetCurrentAnimatorStateInfo(0).IsName("Bouncing"))
                     {
-                        timer = transfertTimer;
-                        _boules[_currentBoule].GetComponentsInChildren<SpriteRenderer>()[1].enabled = true;
+                        _timer = transfertTimer;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].enabled = true;
                         _changeState(EState.TRANSFER);
                     }
                     break;
                 }
             case EState.TRANSFER:
                 {
-                    timer -= Time.deltaTime;
-                    if(timer <= 0)
+                    _timer -= Time.deltaTime;
+                    if(_timer <= 0)
                     {
-                        _boules[_currentBoule].GetComponentsInChildren<SpriteRenderer>()[1].enabled = false;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].enabled = false;
                         _currentBoule++;
-                        if (_currentBoule >= _boules.Length)
+                        if (_currentBoule >= boules.Length)
                         {
-                            foreach(GameObject b in _boules)
+                            foreach(Boule b in boules)
                             {
-                                b.GetComponentsInChildren<SpriteRenderer>()[1].enabled = false;
+                                b.objet.GetComponentsInChildren<SpriteRenderer>()[1].enabled = false;
                             }
+
                             _endAnimator.SetTrigger("Starting");
+
+                            if(_lastContent)
+                            {
+                                _end.GetComponentsInChildren<SpriteRenderer>()[0].sprite = Resources.Load<Sprite>("Boules/BouleContente");
+                            }
+                            else
+                            {
+                                _end.GetComponentsInChildren<SpriteRenderer>()[0].sprite = Resources.Load<Sprite>("Boules/BoulePasContente");
+                            }
+
                             _changeState(EState.ANSWER);
                         }
                         else
                         {
-                            timer = transfertTimer;
-                            _boules[_currentBoule].GetComponentsInChildren<SpriteRenderer>()[1].enabled = true;
+                            _timer = transfertTimer;
+                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].enabled = true;
                         }
                     }
                     break;
@@ -105,13 +132,29 @@ public class GameManager : MonoBehaviour {
                 {
                     if (_endAnimator.GetCurrentAnimatorStateInfo(0).IsName("Bouncing"))
                     {
-                        _startAnimator.SetTrigger("Uping");
-                        _currentBoule = 0;
-                        _changeState(EState.CHOOSE);
+                        _end.GetComponentsInChildren<SpriteRenderer>()[0].sprite = Resources.Load<Sprite>("Boules/BouleNeutral");
+                        if (_score >= pointsToWin)
+                        {
+                            _changeState(EState.WIN);
+                        }
+                        else if (_score <= pointsToLoose)
+                        {
+                            _changeState(EState.LOOSE);
+                        }
+                        else
+                        {
+                            _startAnimator.SetTrigger("Uping");
+                            _currentBoule = 0;
+                            _changeState(EState.CHOOSE);
+                        }
                     }
                     break;
                 }
-            case EState.END:
+            case EState.WIN:
+                {
+                    break;
+                }
+            case EState.LOOSE:
                 {
                     break;
                 }
@@ -124,6 +167,22 @@ public class GameManager : MonoBehaviour {
         {
             _changeState(EState.DOWNING);
             _startAnimator.SetTrigger("Starting");
+            foreach(Boule b in boules)
+            {
+                choice = b.chara.getReaction(choice);
+                b.objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Icons/" + choice);
+            }
+
+            if(bouleEnd.getContent(choice))
+            {
+                _score++;
+                _lastContent = true;
+            }
+            else
+            {
+                _score--;
+                _lastContent = false;
+            }
         }
     }
 
