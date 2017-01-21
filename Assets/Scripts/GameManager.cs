@@ -8,6 +8,7 @@ public enum EState
     DOWNING,
     TRANSFER,
     ANSWER,
+    MISS,
     WIN,
     LOOSE
 }
@@ -27,6 +28,8 @@ public class GameManager : MonoBehaviour {
     public int pointsToWin = 5;
     public int pointsToLoose = -5;
     public float transfertTimer = 1f;
+    public float slowMotionCap = 0.2f;
+    public float slowMotionSpeed = 1f;
     [Space(10)]
     public Boule[] boules;
     [Space(15)]
@@ -53,7 +56,7 @@ public class GameManager : MonoBehaviour {
 
         foreach (Boule g in boules)
         {
-            g.objet.GetComponentsInChildren<SpriteRenderer>()[1].enabled = false;
+            g.objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = false;
         }
 
         _changeState(EState.START);
@@ -81,6 +84,27 @@ public class GameManager : MonoBehaviour {
                 }
             case EState.CHOOSE:
                 {
+                    if(Time.timeScale >= slowMotionCap)
+                    {
+                        Time.timeScale -= slowMotionSpeed * Time.deltaTime;
+                        if (Time.timeScale < slowMotionCap)
+                            Time.timeScale = slowMotionCap;
+                    }
+
+                    if(_startAnimator.GetCurrentAnimatorStateInfo(0).IsName("Bouncing"))
+                    {
+                        Time.timeScale = 1f;
+                        _timer = transfertTimer;
+                        foreach(Boule b in boules)
+                        {
+                            b.objet.GetComponentsInChildren<SpriteRenderer>()[2].sprite = Resources.Load<Sprite>("Icons/Points");
+                        }
+                        _score--;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/neutral");
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = true;
+                        _changeState(EState.MISS);
+                    }
+
                     break;
                 }
             case EState.DOWNING:
@@ -88,7 +112,7 @@ public class GameManager : MonoBehaviour {
                     if(_startAnimator.GetCurrentAnimatorStateInfo(0).IsName("Bouncing"))
                     {
                         _timer = transfertTimer;
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].enabled = true;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = true;
                         _changeState(EState.TRANSFER);
                     }
                     break;
@@ -98,24 +122,19 @@ public class GameManager : MonoBehaviour {
                     _timer -= Time.deltaTime;
                     if(_timer <= 0)
                     {
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].enabled = false;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = false;
                         _currentBoule++;
                         if (_currentBoule >= boules.Length)
                         {
-                            foreach(Boule b in boules)
-                            {
-                                b.objet.GetComponentsInChildren<SpriteRenderer>()[1].enabled = false;
-                            }
-
                             _endAnimator.SetTrigger("Starting");
 
                             if(_lastContent)
                             {
-                                _end.GetComponentsInChildren<SpriteRenderer>()[0].sprite = Resources.Load<Sprite>("Boules/BouleContente");
+                                _end.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_happy03");
                             }
                             else
                             {
-                                _end.GetComponentsInChildren<SpriteRenderer>()[0].sprite = Resources.Load<Sprite>("Boules/BoulePasContente");
+                                _end.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_sad03_boy");
                             }
 
                             _changeState(EState.ANSWER);
@@ -123,7 +142,7 @@ public class GameManager : MonoBehaviour {
                         else
                         {
                             _timer = transfertTimer;
-                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].enabled = true;
+                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = true;
                         }
                     }
                     break;
@@ -132,7 +151,7 @@ public class GameManager : MonoBehaviour {
                 {
                     if (_endAnimator.GetCurrentAnimatorStateInfo(0).IsName("Bouncing"))
                     {
-                        _end.GetComponentsInChildren<SpriteRenderer>()[0].sprite = Resources.Load<Sprite>("Boules/BouleNeutral");
+                        _end.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_neutral_boy");
                         if (_score >= pointsToWin)
                         {
                             _changeState(EState.WIN);
@@ -146,6 +165,29 @@ public class GameManager : MonoBehaviour {
                             _startAnimator.SetTrigger("Uping");
                             _currentBoule = 0;
                             _changeState(EState.CHOOSE);
+                        }
+                    }
+                    break;
+                }
+            case EState.MISS:
+                {
+                    _timer -= Time.deltaTime;
+                    if (_timer <= 0)
+                    {
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_neutral_boy");
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = false;
+                        _currentBoule++;
+                        if (_currentBoule >= boules.Length)
+                        {
+                            _endAnimator.SetTrigger("Starting");
+                            _end.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/neutral");
+                            _changeState(EState.ANSWER);
+                        }
+                        else
+                        {
+                            _timer = transfertTimer;
+                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/neutral");
+                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[2].enabled = true;
                         }
                     }
                     break;
@@ -165,12 +207,13 @@ public class GameManager : MonoBehaviour {
     {
         if(state ==  EState.CHOOSE)
         {
+            Time.timeScale = 1f;
             _changeState(EState.DOWNING);
             _startAnimator.SetTrigger("Starting");
             foreach(Boule b in boules)
             {
                 choice = b.chara.getReaction(choice);
-                b.objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Icons/" + choice);
+                b.objet.GetComponentsInChildren<SpriteRenderer>()[2].sprite = Resources.Load<Sprite>("Icons/" + choice);
             }
 
             if(bouleEnd.getContent(choice))
