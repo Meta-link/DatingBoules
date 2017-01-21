@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.SceneManagement;
 
 public enum EState
 {
@@ -47,6 +48,7 @@ public class GameManager : MonoBehaviour {
     private int _currentBoule = 0;
     private UIManager _UIManager;
     private List<string> _icons;
+    private AudioSource _sound;
 
     private bool _lastContent = false;
     private float _timer;
@@ -60,6 +62,7 @@ public class GameManager : MonoBehaviour {
         _end = GameObject.FindGameObjectWithTag("BouleEnd");
         _endAnimator = _end.GetComponent<Animator>();
         _UIManager = GameObject.Find("UI").GetComponent<UIManager>();
+        _sound = GetComponent<AudioSource>();
 
         _icons = new List<string>();
         foreach(Reaction r in bouleEnd.reactions)
@@ -107,7 +110,7 @@ public class GameManager : MonoBehaviour {
                         _timer = transfertTimer;
                         foreach(Boule b in boules)
                         {
-                            b.objet.GetComponentsInChildren<SpriteRenderer>()[2].sprite = Resources.Load<Sprite>("Icons/Points");
+                            b.objet.GetComponentsInChildren<SpriteRenderer>()[2].sprite = Resources.Load<Sprite>("Icons/Silence");
                         }
                         _score--;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/neutral");
@@ -122,9 +125,12 @@ public class GameManager : MonoBehaviour {
                 {
                     if(_startAnimator.GetCurrentAnimatorStateInfo(0).IsName("Bouncing"))
                     {
+                        _start.GetComponentsInChildren<SpriteRenderer>()[3].enabled = false;
+                        _start.GetComponentsInChildren<SpriteRenderer>()[4].enabled = false;
                         _timer = transfertTimer;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
+
                         _changeState(EState.TRANSFER);
                     }
                     break;
@@ -211,10 +217,12 @@ public class GameManager : MonoBehaviour {
                 }
             case EState.WIN:
                 {
+                    SceneManager.LoadScene(nextLevel);
                     break;
                 }
             case EState.LOOSE:
                 {
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                     break;
                 }
         }
@@ -225,6 +233,13 @@ public class GameManager : MonoBehaviour {
         if(state ==  EState.CHOOSE)
         {
             Time.timeScale = 1f;
+
+            _start.GetComponentsInChildren<SpriteRenderer>()[3].sprite = Resources.Load<Sprite>("Icons/" + choice);
+            _start.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
+            _start.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
+
+            _playIconSound(choice);
+
             _changeState(EState.DOWNING);
             _startAnimator.SetTrigger("Starting");
             foreach(Boule b in boules)
@@ -313,6 +328,12 @@ public class GameManager : MonoBehaviour {
             }
         }
         return actions;
+    }
+
+    private void _playIconSound(string c)
+    {
+        _sound.clip = Resources.Load<AudioClip>("SonsIcons/I_" + c);
+        _sound.Play();
     }
 
     private void _changeState(EState newState)

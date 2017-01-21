@@ -13,6 +13,6 @@ public class MenuManager : MonoBehaviour {
 
     public void startGame()
     {
-        SceneManager.LoadScene("Niveau1");
+        SceneManager.LoadScene("Niveau 1");
     }
 }
