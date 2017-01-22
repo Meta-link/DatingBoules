@@ -16,7 +16,6 @@ public class MusicManager : MonoBehaviour {
             GameObject.Destroy(gameObject);
         }
 
-
         debut = GetComponents<AudioSource>()[0];
         music = GetComponents<AudioSource>()[1];
     }
