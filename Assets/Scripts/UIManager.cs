@@ -7,10 +7,13 @@ public class UIManager : MonoBehaviour {
     public GameObject win;
     public GameObject loose;
 
+    private Animator animator;
+
     public delegate void EventChoice(string choice);
     public static event EventChoice OnChoice;
 
     void Start () {
+        animator = GetComponent<Animator>();
 
         //EVENTS
         GameManager.OnState += _OnState;

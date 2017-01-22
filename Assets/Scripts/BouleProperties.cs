@@ -11,6 +11,7 @@ public struct Reaction
 
 public class BouleProperties : ScriptableObject {
     public string nom;
+    public Sprite sprite;
     public Reaction[] reactions;
 
     public string getReaction(string a)

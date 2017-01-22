@@ -35,6 +35,7 @@ public class GameManager : MonoBehaviour {
     public float transfertTimer = 1f;
     public float slowMotionCap = 0.2f;
     public float slowMotionSpeed = 1f;
+    public float val = 0.3f;
     [Space(10)]
     public Boule[] boules;
     [Space(15)]
@@ -46,9 +47,11 @@ public class GameManager : MonoBehaviour {
     private GameObject _end;
     private Animator _endAnimator;
     private int _currentBoule = 0;
+    private string[] _choices;
     private UIManager _UIManager;
     private List<string> _icons;
     private AudioSource _sound;
+    private AudioSource _swing;
 
     private bool _lastContent = false;
     private float _timer;
@@ -62,7 +65,9 @@ public class GameManager : MonoBehaviour {
         _end = GameObject.FindGameObjectWithTag("BouleEnd");
         _endAnimator = _end.GetComponent<Animator>();
         _UIManager = GameObject.Find("UI").GetComponent<UIManager>();
-        _sound = GetComponent<AudioSource>();
+        _sound = GetComponents<AudioSource>()[0];
+        _swing = GetComponents<AudioSource>()[1];
+        _choices = new string[boules.Length];
 
         _icons = new List<string>();
         foreach(Reaction r in bouleEnd.reactions)
@@ -70,18 +75,26 @@ public class GameManager : MonoBehaviour {
             _icons.Add(r.action);
         }
 
+        foreach(Boule b in boules)
+        {
+            b.objet.GetComponentsInChildren<SpriteRenderer>()[2].sprite = b.chara.sprite;
+        }
+        _end.GetComponentsInChildren<SpriteRenderer>()[2].sprite = bouleEnd.sprite;
+
         _setNewTexts(bonnesReponses);
 
         _changeState(EState.START);
 
         //EVENTS
         UIManager.OnChoice += OnChoice;
+        BouleBase.OnChange += _OnStartChange;
     }
 
     void OnDestroy()
     {
         //EVENTS
         UIManager.OnChoice -= OnChoice;
+        BouleBase.OnChange -= _OnStartChange;
     }
 	
 	void Update () {
@@ -114,8 +127,8 @@ public class GameManager : MonoBehaviour {
                         }
                         _score--;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/neutral");
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = true;
                         _changeState(EState.MISS);
                     }
 
@@ -128,8 +141,10 @@ public class GameManager : MonoBehaviour {
                         _start.GetComponentsInChildren<SpriteRenderer>()[3].enabled = false;
                         _start.GetComponentsInChildren<SpriteRenderer>()[4].enabled = false;
                         _timer = transfertTimer;
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = true;
+
+                        _playIconSound(_choices[_currentBoule]);
 
                         _changeState(EState.TRANSFER);
                     }
@@ -140,8 +155,8 @@ public class GameManager : MonoBehaviour {
                     _timer -= Time.deltaTime;
                     if(_timer <= 0)
                     {
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = false;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = false;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = false;
                         _currentBoule++;
                         if (_currentBoule >= boules.Length)
                         {
@@ -161,8 +176,9 @@ public class GameManager : MonoBehaviour {
                         else
                         {
                             _timer = transfertTimer;
-                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
                             boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
+                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = true;
+                            _playIconSound(_choices[_currentBoule]);
                         }
                     }
                     break;
@@ -196,8 +212,8 @@ public class GameManager : MonoBehaviour {
                     if (_timer <= 0)
                     {
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_neutral_boy");
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = false;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = false;
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = false;
                         _currentBoule++;
                         if (_currentBoule >= boules.Length)
                         {
@@ -209,8 +225,8 @@ public class GameManager : MonoBehaviour {
                         {
                             _timer = transfertTimer;
                             boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/neutral");
-                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
                             boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
+                            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = true;
                         }
                     }
                     break;
@@ -238,14 +254,14 @@ public class GameManager : MonoBehaviour {
             _start.GetComponentsInChildren<SpriteRenderer>()[3].enabled = true;
             _start.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
 
-            _playIconSound(choice);
+            _playIconSound(choice, true);
 
             _changeState(EState.DOWNING);
             _startAnimator.SetTrigger("Starting");
-            foreach(Boule b in boules)
+            for(int i  = 0; i < boules.Length; i++)
             {
-                choice = b.chara.getReaction(choice);
-                b.objet.GetComponentsInChildren<SpriteRenderer>()[3].sprite = Resources.Load<Sprite>("Icons/" + choice);
+                _choices[i] = choice = boules[i].chara.getReaction(choice);
+                boules[i].objet.GetComponentsInChildren<SpriteRenderer>()[4].sprite = Resources.Load<Sprite>("Icons/" + choice);
             }
 
             if(bouleEnd.getContent(choice))
@@ -330,10 +346,63 @@ public class GameManager : MonoBehaviour {
         return actions;
     }
 
-    private void _playIconSound(string c)
+    private void _playIconSound(string c, bool left = false, bool right = false)
     {
         _sound.clip = Resources.Load<AudioClip>("SonsIcons/I_" + c);
+
+        if(left)
+        {
+            _sound.panStereo = -val;
+        }
+        else if(right)
+        {
+            _sound.panStereo = val;
+        }
+        else
+        {
+            _sound.panStereo = 0f;
+        }
+
         _sound.Play();
+    }
+
+    private void _playSwingSound(bool up, bool slow, bool start)
+    {
+        string s = "";
+        if(up)
+        {
+            s += "Up_";
+        }
+        else
+        {
+            s += "Down_";
+        }
+
+        if(slow)
+        {
+            s += "Slow";
+        }
+        else
+        {
+            s += "Fast";
+        }
+
+        if (start)
+        {
+            _swing.panStereo = -val;
+        }
+        else
+        {
+            _swing.panStereo = val;
+        }
+
+        _swing.clip = Resources.Load<AudioClip>("SonsUpDown/" + s);
+        _swing.Play();
+    }
+
+    private void _OnStartChange(bool up, bool start)
+    {
+        _playSwingSound(up, Time.timeScale == 1 ? false : true, start);
     }
 
     private void _changeState(EState newState)
