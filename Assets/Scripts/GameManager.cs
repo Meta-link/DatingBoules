@@ -52,6 +52,8 @@ public class GameManager : MonoBehaviour {
     private List<string> _icons;
     private AudioSource _sound;
     private AudioSource _swing;
+    private SpriteRenderer _fenetre;
+    private float _turn = 0;
 
     private bool _lastContent = false;
     private float _timer;
@@ -70,6 +72,7 @@ public class GameManager : MonoBehaviour {
         _sound = GetComponents<AudioSource>()[0];
         _swing = GetComponents<AudioSource>()[1];
         _choices = new string[boules.Length];
+        _fenetre = GameObject.Find("Fenetre").GetComponent<SpriteRenderer>();
 
         _icons = new List<string>();
         foreach(Reaction r in bouleEnd.reactions)
@@ -238,7 +241,7 @@ public class GameManager : MonoBehaviour {
                         {
                             _changeState(EState.WIN);
                         }
-                        else if (_score <= pointsToLoose)
+                        else if (_score <= pointsToLoose || _turn >= 10)
                         {
                             _changeState(EState.LOOSE);
                         }
@@ -321,6 +324,9 @@ public class GameManager : MonoBehaviour {
                 _score--;
                 _lastContent = false;
             }
+
+            _turn++;
+            _fenetre.sprite = Resources.Load<Sprite>("Fenetre/" + _turn);
         }
     }
 
@@ -329,18 +335,6 @@ public class GameManager : MonoBehaviour {
         int b = 1;
         List<string> list = _getChain();
         List<string> remaining = _icons.Except(list).ToList();
-
-
-
-        foreach (string s in list)
-        {
-            //Debug.Log(s);
-        }
-        //Debug.Log(" ");
-        foreach (string s in remaining)
-        {
-            //Debug.Log(s);
-        }
 
         System.Random rnd = new System.Random();
 
