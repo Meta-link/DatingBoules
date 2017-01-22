@@ -131,6 +131,7 @@ public class GameManager : MonoBehaviour {
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/neutral");
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = true;
+
                         _changeState(EState.MISS);
                     }
 
@@ -143,10 +144,13 @@ public class GameManager : MonoBehaviour {
                         _start.GetComponentsInChildren<SpriteRenderer>()[3].enabled = false;
                         _start.GetComponentsInChildren<SpriteRenderer>()[4].enabled = false;
                         _timer = transfertTimer;
+
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = true;
 
                         boules[_currentBoule].objet.GetComponent<Animator>().SetTrigger("ShakeR");
+
+                        _setMiddleFace();
 
                         _playIconSound(_choices[_currentBoule]);
 
@@ -164,6 +168,7 @@ public class GameManager : MonoBehaviour {
                     {
                         if (OnShake != null)
                             OnShake();
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_neutral_boy");
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = false;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = false;
                         _currentBoule++;
@@ -188,6 +193,7 @@ public class GameManager : MonoBehaviour {
                             boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
                             boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = true;
                             boules[_currentBoule].objet.GetComponent<Animator>().SetTrigger("ShakeR");
+                            _setMiddleFace();
                             _playIconSound(_choices[_currentBoule]);
                         }
                     }
@@ -200,6 +206,34 @@ public class GameManager : MonoBehaviour {
                         if (OnShake != null)
                             OnShake();
                         _end.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_neutral_boy");
+
+                        string skin = "face_neutral_boy";
+                        if (_score >= 3)
+                        {
+                            skin = "face_happy03";
+                        }
+                        else if(_score == 2)
+                        {
+                            skin = "face_happy02_boy";
+                        }
+                        else if (_score == 1)
+                        {
+                            skin = "face_happy01_boy";
+                        }
+                        else if (_score == -1)
+                        {
+                            skin = "face_sad01_boy";
+                        }
+                        else if (_score == -2)
+                        {
+                            skin = "face_sad02_boy";
+                        }
+                        else if (_score <= -3)
+                        {
+                            skin = "face_sad03_boy";
+                        }
+                        _end.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/"+skin);
+
                         if (_score >= pointsToWin)
                         {
                             _changeState(EState.WIN);
@@ -424,5 +458,17 @@ public class GameManager : MonoBehaviour {
         Debug.Log(state);
         if (OnState != null)
             OnState(state);
+    }
+
+    private void _setMiddleFace()
+    {
+        if (boules[_currentBoule].chara.getContent(_choices[_currentBoule]))
+        {
+            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_happy01_boy");
+        }
+        else
+        {
+            boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_sad01_boy");
+        }
     }
 }
