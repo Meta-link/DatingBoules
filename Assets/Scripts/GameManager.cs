@@ -123,7 +123,7 @@ public class GameManager : MonoBehaviour {
                         _timer = transfertTimer;
                         foreach(Boule b in boules)
                         {
-                            b.objet.GetComponentsInChildren<SpriteRenderer>()[2].sprite = Resources.Load<Sprite>("Icons/Silence");
+                            b.objet.GetComponentsInChildren<SpriteRenderer>()[4].sprite = Resources.Load<Sprite>("Icons/Silence");
                         }
                         _score--;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/neutral");
@@ -143,6 +143,8 @@ public class GameManager : MonoBehaviour {
                         _timer = transfertTimer;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = true;
+
+                        boules[_currentBoule].objet.GetComponent<Animator>().SetTrigger("ShakeR");
 
                         _playIconSound(_choices[_currentBoule]);
 
@@ -178,6 +180,7 @@ public class GameManager : MonoBehaviour {
                             _timer = transfertTimer;
                             boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = true;
                             boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = true;
+                            boules[_currentBoule].objet.GetComponent<Animator>().SetTrigger("ShakeR");
                             _playIconSound(_choices[_currentBoule]);
                         }
                     }
@@ -202,6 +205,7 @@ public class GameManager : MonoBehaviour {
                             _currentBoule = 0;
                             _changeState(EState.CHOOSE);
                             _setNewTexts(bonnesReponses);
+                            boules[boules.Length-1].objet.GetComponent<Animator>().SetTrigger("ShakeL");
                         }
                     }
                     break;
@@ -211,7 +215,7 @@ public class GameManager : MonoBehaviour {
                     _timer -= Time.deltaTime;
                     if (_timer <= 0)
                     {
-                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_neutral_boy");
+                        boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_happy01_boy");
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = false;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = false;
                         _currentBoule++;
