@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class MusicManager : MonoBehaviour {
 
-    private AudioSource debut;
-    private AudioSource music;
-    private bool _check;
+    public AudioClip music;
+
+    private AudioSource _source;
+    private bool _check = false;
 
 	void Start () {
 
@@ -16,20 +17,19 @@ public class MusicManager : MonoBehaviour {
             GameObject.Destroy(gameObject);
         }
 
-        debut = GetComponents<AudioSource>()[0];
-        music = GetComponents<AudioSource>()[1];
+        _source = GetComponent<AudioSource>();
     }
 	
 	void Update () {
-
-        if(!_check && debut.isPlaying)
+        if(_source.isPlaying && !_check)
         {
             _check = true;
         }
-
-		if(_check && !debut.isPlaying && !music.isPlaying)
+		else if(_check && !_source.isPlaying)
         {
-            music.Play();
+            _source.clip = music;
+            _source.loop = true;
+            _source.Play();
         }
 	}
 }
