@@ -30,8 +30,9 @@ public class UIManager : MonoBehaviour {
 
     public void setButton(int nb, string s)
     {
+        //Debug.Log(s);
         Button b = GameObject.Find("Button " + nb).GetComponent<Button>();
-        b.GetComponentInChildren<Text>().text = s;
+        b.GetComponentsInChildren<Image>()[1].sprite = Resources.Load<Sprite>("Icons/" + s);
         b.onClick.RemoveAllListeners();
         b.onClick.AddListener(() => makeChoice(s));
     }
