@@ -13,20 +13,24 @@ public class CameraManager : MonoBehaviour {
     private float _startZoom;
     private Vector3 _startPosition;
     private GameObject _startboule;
+    private ShakeCamera _shake;
 
     void Start () {
         cam = GetComponent<Camera>();
         _startZoom = cam.orthographicSize;
         _startPosition = transform.position;
         _startboule = GameObject.Find("SpriteStart");
+        _shake = GetComponent<ShakeCamera>();
 
         //EVENTS
         GameManager.OnState += _OnState;
+        GameManager.OnShake += _OnShake;
 	}
 
     void OnDestroy()
     {
         GameManager.OnState -= _OnState;
+        GameManager.OnShake += _OnShake;
     }
 	
 	void Update () {
@@ -87,5 +91,10 @@ public class CameraManager : MonoBehaviour {
                     break;
                 }
         }
+    }
+
+    private void _OnShake()
+    {
+        _shake.DoShake(0.01f);
     }
 }

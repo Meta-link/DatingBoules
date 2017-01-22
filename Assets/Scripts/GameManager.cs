@@ -58,6 +58,8 @@ public class GameManager : MonoBehaviour {
 
     public delegate void EventState(EState state);
     public static event EventState OnState;
+    public delegate void EventShake();
+    public static event EventShake OnShake;
 
     void Start () {
         _start = GameObject.FindGameObjectWithTag("BouleStart");
@@ -148,6 +150,9 @@ public class GameManager : MonoBehaviour {
 
                         _playIconSound(_choices[_currentBoule]);
 
+                        if (OnShake != null)
+                            OnShake();
+
                         _changeState(EState.TRANSFER);
                     }
                     break;
@@ -157,6 +162,8 @@ public class GameManager : MonoBehaviour {
                     _timer -= Time.deltaTime;
                     if(_timer <= 0)
                     {
+                        if (OnShake != null)
+                            OnShake();
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[4].enabled = false;
                         boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[5].enabled = false;
                         _currentBoule++;
@@ -190,6 +197,8 @@ public class GameManager : MonoBehaviour {
                 {
                     if (_endAnimator.GetCurrentAnimatorStateInfo(0).IsName("Bouncing"))
                     {
+                        if (OnShake != null)
+                            OnShake();
                         _end.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_neutral_boy");
                         if (_score >= pointsToWin)
                         {
