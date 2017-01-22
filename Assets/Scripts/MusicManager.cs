@@ -18,6 +18,14 @@ public class MusicManager : MonoBehaviour {
         }
 
         _source = GetComponent<AudioSource>();
+
+        //EVENTS
+        GameManager.OnState += _OnState;
+    }
+
+    void OnDestroy()
+    {
+        GameManager.OnState -= _OnState;
     }
 	
 	void Update () {
@@ -32,4 +40,16 @@ public class MusicManager : MonoBehaviour {
             _source.Play();
         }
 	}
+
+    void _OnState(EState state)
+    {
+        if(state == EState.LOOSE)
+        {
+            _source.Pause();
+        }
+        /*else if(state == EState.START)
+        {
+            _source.Play();
+        }*/
+    }
 }

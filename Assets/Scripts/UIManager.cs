@@ -4,8 +4,6 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour {
 
     public GameObject choices;
-    public GameObject win;
-    public GameObject loose;
 
     private Animator animator;
 
@@ -52,13 +50,12 @@ public class UIManager : MonoBehaviour {
             case EState.WIN:
                 {
                     choices.SetActive(false);
-                    win.SetActive(true);
                     break;
                 }
             case EState.LOOSE:
                 {
                     choices.SetActive(false);
-                    loose.SetActive(true);
+                    animator.SetTrigger("Loose");
                     break;
                 }
         }

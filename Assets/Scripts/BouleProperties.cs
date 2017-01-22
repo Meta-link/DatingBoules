@@ -13,6 +13,7 @@ public class BouleProperties : ScriptableObject {
     public string nom;
     public Sprite sprite;
     public Reaction[] reactions;
+    public AudioClip b3, b2, b1, g1, g2, g3;
 
     public string getReaction(string a)
     {

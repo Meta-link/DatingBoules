@@ -25,7 +25,7 @@ public class MenuManager : MonoBehaviour {
     public void startGame()
     {
         _start.Play();
-        SceneManager.LoadScene("Niveau 1");
+        SceneManager.LoadScene("Interstate 1");
     }
 
     public void enterCredits()

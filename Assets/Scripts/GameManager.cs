@@ -40,6 +40,7 @@ public class GameManager : MonoBehaviour {
     public Boule[] boules;
     [Space(15)]
     public BouleProperties bouleEnd;
+    public GameObject heart;
 
     private int _score = 0;
     private GameObject _start;
@@ -52,8 +53,12 @@ public class GameManager : MonoBehaviour {
     private List<string> _icons;
     private AudioSource _sound;
     private AudioSource _swing;
+    private AudioSource _feedback;
+    private AudioSource _middle;
+    private AudioSource _endSound;
     private SpriteRenderer _fenetre;
     private float _turn = 0;
+    private ParticleSystem _coeurs, _nuages;
 
     private bool _lastContent = false;
     private float _timer;
@@ -71,8 +76,13 @@ public class GameManager : MonoBehaviour {
         _UIManager = GameObject.Find("UI").GetComponent<UIManager>();
         _sound = GetComponents<AudioSource>()[0];
         _swing = GetComponents<AudioSource>()[1];
+        _feedback = GetComponents<AudioSource>()[2];
+        _middle = GetComponents<AudioSource>()[3];
+        _endSound = GetComponents<AudioSource>()[4];
         _choices = new string[boules.Length];
         _fenetre = GameObject.Find("Fenetre").GetComponent<SpriteRenderer>();
+        _coeurs = _end.GetComponentsInChildren<ParticleSystem>()[0];
+        _nuages = _end.GetComponentsInChildren<ParticleSystem>()[1];
 
         _icons = new List<string>();
         foreach(Reaction r in bouleEnd.reactions)
@@ -182,11 +192,39 @@ public class GameManager : MonoBehaviour {
                             if(_lastContent)
                             {
                                 _end.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_happy03");
+                                _coeurs.Emit(50);
                             }
                             else
                             {
                                 _end.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_sad03_boy");
+                                _nuages.Emit(50);
                             }
+
+                            if (_score >= 3)
+                            {
+                                _feedback.clip = bouleEnd.g3;
+                            }
+                            else if (_score == 2)
+                            {
+                                _feedback.clip = bouleEnd.g2;
+                            }
+                            else if (_score == 1)
+                            {
+                                _feedback.clip = bouleEnd.g1;
+                            }
+                            else if (_score == -1)
+                            {
+                                _feedback.clip = bouleEnd.b1;
+                            }
+                            else if (_score == -2)
+                            {
+                                _feedback.clip = bouleEnd.b2;
+                            }
+                            else if (_score <= -3)
+                            {
+                                _feedback.clip = bouleEnd.b3;
+                            }
+                            _feedback.Play();
 
                             _changeState(EState.ANSWER);
                         }
@@ -209,7 +247,7 @@ public class GameManager : MonoBehaviour {
                         if (OnShake != null)
                             OnShake();
                         _end.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_neutral_boy");
-
+                        
                         string skin = "face_neutral_boy";
                         if (_score >= 3)
                         {
@@ -239,10 +277,30 @@ public class GameManager : MonoBehaviour {
 
                         if (_score >= pointsToWin)
                         {
+                            _feedback.clip = bouleEnd.g3;
+                            _feedback.Play();
+
+                            _endSound.clip = Resources.Load<AudioClip>("Love");
+                            _endSound.loop = true;
+                            _endSound.Play(); 
+
                             _changeState(EState.WIN);
+                            GameObject.Instantiate(heart, GameObject.Find("Boules").transform);
+                            _start.transform.position = _start.transform.position + new Vector3(0, 0, -1);
+                            _end.transform.position = _end.transform.position + new Vector3(0, 0, -1);
+                            foreach (Boule b in boules)
+                            {
+                                b.objet.SetActive(false);
+                            }
+
+                            //_endSound.clip = Resources
                         }
                         else if (_score <= pointsToLoose || _turn >= 10)
                         {
+                            _startAnimator.SetTrigger("Loose");
+
+                            _endSound.clip = Resources.Load<AudioClip>("Alone");
+                            _endSound.Play();
                             _changeState(EState.LOOSE);
                         }
                         else
@@ -283,12 +341,18 @@ public class GameManager : MonoBehaviour {
                 }
             case EState.WIN:
                 {
-                    SceneManager.LoadScene(nextLevel);
+                    if(Input.anyKey)
+                    {
+                        SceneManager.LoadScene(nextLevel);
+                    }
                     break;
                 }
             case EState.LOOSE:
                 {
-                    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    if (Input.anyKey)
+                    {
+                        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    }
                     break;
                 }
         }
@@ -327,6 +391,12 @@ public class GameManager : MonoBehaviour {
 
             _turn++;
             _fenetre.sprite = Resources.Load<Sprite>("Fenetre/" + _turn);
+
+            if(nextLevel == "Niveau 2")
+            {
+                if(GameObject.Find("Tuto") != null)
+                    GameObject.Find("Tuto").SetActive(false);
+            }
         }
     }
 
@@ -335,6 +405,17 @@ public class GameManager : MonoBehaviour {
         int b = 1;
         List<string> list = _getChain();
         List<string> remaining = _icons.Except(list).ToList();
+
+        /*
+        foreach(string l in list)
+        {
+            Debug.Log(l);
+        }
+        Debug.Log("__________________");
+        foreach(string l in remaining)
+        {
+            Debug.Log(l);
+        }*/
 
         System.Random rnd = new System.Random();
 
@@ -348,7 +429,7 @@ public class GameManager : MonoBehaviour {
         for(int i = b; i <= 4; i++)
         {
             int rdm = rnd.Next(remaining.Count);
-            _UIManager.setButton(b, remaining[rdm]);
+            _UIManager.setButton(i, remaining[rdm]);
             remaining.RemoveAt(rdm);
         }
     }
@@ -459,10 +540,13 @@ public class GameManager : MonoBehaviour {
         if (boules[_currentBoule].chara.getContent(_choices[_currentBoule]))
         {
             boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_happy01_boy");
+            _middle.clip = boules[_currentBoule].chara.g1;
         }
         else
         {
             boules[_currentBoule].objet.GetComponentsInChildren<SpriteRenderer>()[1].sprite = Resources.Load<Sprite>("Boules/face_sad01_boy");
+            _middle.clip = boules[_currentBoule].chara.b1;
         }
+        _middle.Play();
     }
 }
