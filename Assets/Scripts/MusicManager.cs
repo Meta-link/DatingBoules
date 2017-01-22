@@ -9,11 +9,12 @@ public class MusicManager : MonoBehaviour {
 
 	void Start () {
 
-		if(GameObject.FindGameObjectsWithTag("").Length > 1)
+        DontDestroyOnLoad(gameObject);
+        if (GameObject.FindGameObjectsWithTag("Music").Length > 1)
         {
             GameObject.Destroy(gameObject);
         }
-        DontDestroyOnLoad(gameObject);
+
 
         debut = GetComponents<AudioSource>()[0];
         music = GetComponents<AudioSource>()[1];
