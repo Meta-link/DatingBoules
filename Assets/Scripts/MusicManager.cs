@@ -6,6 +6,7 @@ public class MusicManager : MonoBehaviour {
 
     private AudioSource debut;
     private AudioSource music;
+    private bool _check;
 
 	void Start () {
 
@@ -21,7 +22,13 @@ public class MusicManager : MonoBehaviour {
     }
 	
 	void Update () {
-		if(!debut.isPlaying && !music.isPlaying)
+
+        if(!_check && debut.isPlaying)
+        {
+            _check = true;
+        }
+
+		if(_check && !debut.isPlaying && !music.isPlaying)
         {
             music.Play();
         }
