@@ -418,19 +418,27 @@ public class GameManager : MonoBehaviour {
         }*/
 
         System.Random rnd = new System.Random();
+        List<string> finalChoices = new List<string>();
 
         for(int i = 0; i < n; i++)
         {
             int rdm = rnd.Next(list.Count);
-            _UIManager.setButton(b, list[rdm]);
+            finalChoices.Add(list[rdm]);
             list.RemoveAt(rdm);
             b++;
         }
         for(int i = b; i <= 4; i++)
         {
             int rdm = rnd.Next(remaining.Count);
-            _UIManager.setButton(i, remaining[rdm]);
+            finalChoices.Add(remaining[rdm]);
             remaining.RemoveAt(rdm);
+        }
+
+        for(int i = 1; i <= 4; i++)
+        {
+            int rdm = rnd.Next(finalChoices.Count);
+            _UIManager.setButton(i, finalChoices[rdm]);
+            finalChoices.RemoveAt(rdm);
         }
     }
 
